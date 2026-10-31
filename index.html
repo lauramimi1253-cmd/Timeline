@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Great Vowel Shift - Interactive Timeline</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-pink: #ec4899;
+            --accent-blue: #3b82f6;
+            --accent-purple: #8b5cf6;
+            --accent-green: #10b981;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow-x: hidden;
+            line-height: 1.6;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.15), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(236, 72, 153, 0.15), transparent 25%);
+            background-attachment: fixed;
+        }
+
+        /* Símbolos Fonéticos Flotantes en el Fondo */
+        .bg-symbols {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; pointer-events: none; overflow: hidden;
+        }
+        .symbol {
+            position: absolute;
+            font-family: 'Playfair Display', serif;
+            font-weight: bold;
+            color: rgba(255, 255, 255, 0.03);
+            animation: float 20s infinite linear;
+        }
+        @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-50px) rotate(20deg); }
+            100% { transform: translateY(0) rotate(0deg); }
+        }
+        .s1 { top: 10%; left: 10%; font-size: 8rem; animation-duration: 15s; }
+        .s2 { top: 40%; right: 10%; font-size: 12rem; animation-duration: 25s; }
+        .s3 { top: 70%; left: 20%; font-size: 10rem; animation-duration: 18s; }
+        .s4 { top: 85%; right: 25%; font-size: 7rem; animation-duration: 22s; }
+
+        /* Encabezado */
+        header {
+            text-align: center;
+            padding: 100px 20px 60px;
+            position: relative;
+        }
+        header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 3.5rem;
+            background: linear-gradient(to right, var(--accent-pink), var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+        }
+        header p {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Contenedor de la Línea de Tiempo */
+        .timeline {
+            position: relative;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 0;
+        }
+
+        /* Línea Central */
+        .timeline::after {
+            content: '';
+            position: absolute;
+            width: 4px;
+            background: linear-gradient(to bottom, var(--accent-pink), var(--accent-blue), var(--accent-green));
+            top: 0; bottom: 0; left: 50%;
+            margin-left: -2px;
+            border-radius: 2px;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+        }
+
+        /* Contenedores de Eventos */
+        .container {
+            padding: 20px 50px;
+            position: relative;
+            background-color: inherit;
+            width: 50%;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s ease-out;
+        }
+        .container.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .container.left { left: 0; }
+        .container.right { left: 50%; }
+
+        /* Puntos en la Línea */
+        .container::after {
+            content: '';
+            position: absolute;
+            width: 24px; height: 24px;
+            right: -12px;
+            background-color: var(--bg-color);
+            border: 4px solid var(--accent-pink);
+            top: 50px;
+            border-radius: 50%;
+            z-index: 2;
+            box-shadow: 0 0 15px var(--accent-pink);
+            transition: all 0.3s;
+        }
+        .container.right::after {
+            left: -12px;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 15px var(--accent-blue);
+        }
+
+        /* Tarjetas de Cristal (Glassmorphism) */
+        .content {
+            padding: 35px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            position: relative;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            transition: transform 0.3s;
+        }
+        .content:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255,255,255,0.2);
+        }
+
+        /* Flechas de las Tarjetas */
+        .container.left .content::before {
+            content: " ";
+            position: absolute;
+            top: 50px; right: -10px;
+            border-width: 10px 0 10px 10px;
+            border-style: solid;
+            border-color: transparent transparent transparent var(--glass-border);
+        }
+        .container.right .content::before {
+            content: " ";
+            position: absolute;
+            top: 50px; left: -10px;
+            border-width: 10px 10px 10px 0;
+            border-style: solid;
+            border-color: transparent var(--glass-border) transparent transparent;
+        }
+
+        /* Textos de la Tarjeta */
+        .date {
+            font-weight: 800;
+            color: var(--accent-pink);
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        .container.right .date { color: var(--accent-blue); }
+        
+        h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: #fff;
+        }
+        p {
+            color: var(--text-muted);
+            font-size: 1rem;
+            margin-bottom: 20px;
+        }
+        .highlight {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        /* Botón de Audio Interactivo */
+        .audio-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            background: rgba(236, 72, 153, 0.1);
+            border: 1px solid var(--accent-pink);
+            color: var(--accent-pink);
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        .audio-btn:hover {
+            background: var(--accent-pink);
+            color: #fff;
+            box-shadow: 0 0 20px rgba(236, 72, 153, 0.4);
+        }
+        .container.right .audio-btn {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+        .container.right .audio-btn:hover {
+            background: var(--accent-blue);
+            color: #fff;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+        }
+
+        /* Caja de Ejemplos (Visual Comparison) */
+        .example-box {
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+        }
+        .example-box span {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .old-sound { color: var(--accent-pink); }
+        .new-sound { color: var(--accent-green); }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            border-top: 1px solid var(--glass-border);
+            margin-top: 50px;
+            background: rgba(0,0,0,0.3);
+        }
+
+        /* Responsive */
+        @media screen and (max-width: 900px) {
+            .timeline::after { left: 31px; }
+            .container {
+                width: 100%;
+                padding-left: 70px;
+                padding-right: 25px;
+            }
+            .container.right { left: 0%; }
+            .container.left::after, .container.right::after {
+                left: 19px;
+                border-color: var(--accent-purple);
+                box-shadow: 0 0 15px var(--accent-purple);
+            }
+            .container.left .content::before, .container.right .content::before { display: none; }
+            header h1 { font-size: 2.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Fondo Dinámico -->
+    <div class="bg-symbols">
+        <div class="symbol s1">/iː/</div>
+        <div class="symbol s2">/aɪ/</div>
+        <div class="symbol s3">/əʊ/</div>
+        <div class="symbol s4">/ʃ/</div>
+    </div>
+
+    <header>
+        <h1>The Great Vowel Shift</h1>
+        <p>An interactive journey through the historical changes that shaped the modern English vowel system. Based on the Long-Vowel Shifts (Stenbrenden, 2016).</p>
+    </header>
+
+    <div class="timeline">
+        
+        <!-- Evento 1 -->
+        <div class="container left">
+            <div class="content">
+                <div class="date">c. 1100 – 1400</div>
+                <h2>The Continental Era</h2>
+                <p>Before the shift, English long vowels were pronounced similarly to Latin or Spanish. The system was highly phonetic: <span class="highlight">words were pronounced exactly as they were written</span>. The letter 'a' always sounded like /a/, and 'i' sounded like /iː/.</p>
+                
+                <div class="example-box">
+                    <span>Word: <strong>HUS</strong> (House)</span>
+                    <span class="old-sound">Old Sound: /huːs/</span>
+                    <span class="new-sound">Modern Sound: /haʊs/</span>
+                </div>
+
+                <button class="audio-btn" onclick="speak('hus')">🔊 Listen to Old English</button>
+            </div>
+        </div>
+
+        <!-- Evento 2 -->
+        <div class="container right">
+            <div class="content">
+                <div class="date">c. 1400 – 1500</div>
+                <h2>The Awakening: Vowels Start to Rise</h2>
+                <p>The Great Vowel Shift begins. Speakers started raising their tongues higher in the mouth when pronouncing long vowels. This was likely a chain reaction: as one vowel moved up, it pushed the others to move as well to maintain distinction between words.</p>
+                
+                <div class="example-box">
+                    <span>Word: <strong>FEET</strong></span>
+                    <span class="old-sound">Old Sound: /feːt/</span>
+                    <span class="new-sound">New Sound: /fiːt/</span>
+                </div>
+
+                <button class="audio-btn" onclick="speak('feet')">🔊 Listen to the Change</button>
+            </div>
+        </div>
+
+        <!-- Evento 3 -->
+        <div class="container left">
+            <div class="content">
+                <div class="date">c. 1500 – 1600</div>
+                <h2>The Fracture: Diphthongization</h2>
+                <p>The highest vowels (/iː/ and /uː/) could not rise any further, so they "broke" and became diphthongs (two vowel sounds gliding together in one syllable). This is why modern English has so many complex vowel sounds.</p>
+                
+                <div class="example-box">
+                    <span>Word: <strong>TIME</strong></span>
+                    <span class="old-sound">Old Sound: /tiːm/</span>
+                    <span class="new-sound">New Sound: /taɪm/</span>
+                </div>
+
+                <button class="audio-btn" onclick="speak('time')">🔊 Listen to the Fracture</button>
+            </div>
+        </div>
+
+        <!-- Evento 4 -->
+        <div class="container right">
+            <div class="content">
+                <div class="date">c. 1600 – 1700</div>
+                <h2>The Spelling Freeze</h2>
+                <p>The shift concludes. However, the printing press (introduced by William Caxton in 1476) was already standardizing spelling based on the <em>old</em> pronunciation. Pronunciation kept changing, but spelling froze. This created the great mismatch we see today.</p>
+                
+                <div class="example-box">
+                    <span>Word: <strong>NAME</strong></span>
+                    <span class="old-sound">Old Sound: /naːmə/</span>
+                    <span class="new-sound">New Sound: /neɪm/</span>
+                </div>
+
+                <button class="audio-btn" onclick="speak('name')">🔊 Listen to the Freeze</button>
+            </div>
+        </div>
+
+        <!-- Evento 5 -->
+        <div class="container left">
+            <div class="content">
+                <div class="date">Modern English (Present)</div>
+                <h2>The Segmental Challenge</h2>
+                <p>This historical evolution resulted in an incredibly rich inventory: <span class="highlight">12 pure vowels and 8 diphthongs</span> (compared to only 5 pure vowels in Spanish). This complex system is the main reason why Spanish speakers face L1 phonetic interference today, struggling with sounds like /ʌ/, /ɪ/ and /iː/ (Uribe Enciso et al., 2019).</p>
+                
+                <div class="example-box">
+                    <span class="old-sound">English System: 12 Vowels + 8 Diphthongs</span>
+                    <span class="new-sound">Spanish System: 5 Vowels</span>
+                </div>
+
+                <button class="audio-btn" onclick="speak('ship and sheep')">🔊 Listen to /ʃɪp/ vs /ʃiːp/</button>
+            </div>
+        </div>
+
+    </div>
+
+    <footer>
+        <p>Task 3 - Consonant and Vowel Sounds</p>
+        <p>Reference: Stenbrenden, G. F. (2016). <em>Long-Vowel Shifts in English, C.1050-1700: Evidence From Spelling</em>. Cambridge University Press.</p>
+    </footer>
+
+    <!-- JavaScript para Interactividad y Animaciones -->
+    <script>
+        // 1. Animación de Scroll (Intersection Observer)
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('show');
+                }
+            });
+        }, { threshold: 0.2 });
+
+        const hiddenElements = document.querySelectorAll('.container');
+        hiddenElements.forEach((el) => observer.observe(el));
+
+        // 2. Text-to-Speech (Audio Dinámico)
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel(); // Detener audios previos
+                
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-GB'; // Acento británico
+                utterance.rate = 0.85; // Velocidad ligeramente más lenta
+                utterance.pitch = 1; 
+                
+                window.speechSynthesis.speak(utterance);
+            } else {
+                alert("Tu navegador no soporta la síntesis de voz, pero puedes leer el texto fonético.");
+            }
+        }
+    </script>
+</body>
+</html>
